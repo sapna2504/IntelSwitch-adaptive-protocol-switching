@@ -8,6 +8,7 @@
 # Module 2: Modified DASH player (dash.js) to set the protocol field
 1. This is the second module where we set the protocol HTTP/2 for audio and HTTP/3 for video within the DASH codebase.
 2. This set protocol field is communicated to the Chromium browser through XMLHTTPRequest (XHR).
-
-# Module 2: To design an Intelligent Decision Algorithm
-1. This is the second module, where we have written the RL code and accordingly modified the DASH code such that we can send data and take action based on the RL server.
+3. The decision to choose a protocol is taken by an RL-based protocol decision engine.
+4. Hence, the modifications also include the file where we have written the code
+   (a) to send data to the RL model, and accordingly modified the DASH code such that we can send data.
+   (b) to set the protocol field based on RL based protocol decision engine response.
