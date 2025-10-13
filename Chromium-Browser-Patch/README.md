@@ -13,9 +13,17 @@ When the player requests a video segment, it initiates the request through the b
 # Modified Chromium Implementation details:
 ![Chromium modifications](images/Modified-chromium.drawio.png)
 
-The above figure shows the modified pipeline. It operates as follows:  
+The above figure shows the modified pipeline. It operates as follows: 
 1. The DASH player annotates each request with a protocol hint,
-2. Blink transparently forwards this metadata,
+2. Blink layer transparently forwards this metadata,
 3. The Network Service Layer carries the hint into the net stack, and
 4. Finally, the Network and HTTP Layer (HttpStreamFactory) instantiates and binds jobs deterministically in accordance with the preference.
 5. In the end, the HTTP request with the selected transport protocol is sent to the server.
+
+The detailed description of the above-mentioned modifications and as follows:
+### Step 1: DASH Player to Blink (Protocol Injection): 
+The DASH player issues segment requests via the standard XMLHttpRequest API. We extended the Blink layer (rendering engine of Chromium) by adding a new protocol attribute to xmlhttprequest.idl. We modified xmlhttprequest.h and xmlhttprequest.cc to read the protocol field associated with each request. We then use this protocol field to set the **protocolMode**. In mojom, **protocolMode** is defined as an enum in the network.mojom file. It represents a transport protocol preference for a network request and gets serialized across Mojo IPC between the renderer, -> browser, -> the network service.
+
+### Step 2: Blink to Network Service (Request Propagation): 
+The network::ResourceRequest is a mojo-serializable representation of a network request. The ResourceRequest instance carries the **protocolMode** value along with other attributes of a request. It is forwarded from the browser process via Mojo to the network service. We then modified resource\_request.h and HttpRequestInfo to include   **preferredProtocol_** flag, ensuring the protocol preference persists through the out-of-process boundary into the net stack. For **protocolMode** value _khttp3_, **preferredProtocol_** flag is set to True, and for _khttp2_ and _khttp1_ it is set to False.
+
