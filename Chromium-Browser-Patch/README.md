@@ -27,3 +27,15 @@ The DASH player issues segment requests via the standard XMLHttpRequest API. We 
 ### Step 2: Blink to Network Service (Request Propagation): 
 The network::ResourceRequest is a mojo-serializable representation of a network request. The ResourceRequest instance carries the **protocolMode** value along with other attributes of a request. It is forwarded from the browser process via Mojo to the network service. We then modified resource\_request.h and HttpRequestInfo to include   **preferredProtocol_** flag, ensuring the protocol preference persists through the out-of-process boundary into the net stack. For **protocolMode** value _khttp3_, **preferredProtocol_** flag is set to True, and for _khttp2_ and _khttp1_ it is set to False.
 
+### Step 3: Net Stack Integration (Protocol Awareness)
+In _HttpStreamFactory::JobController_, we introduced **activeProtocol** to reference **preferredProtocol_**, allowing job orchestration to access the chosen transport protocol.
+
+### Step 4: Job Creation Logic (DoCreateJobs)
+We modified the default job creation behavior to: (1) Always create both _main_job__ (HTTP/2 over TCP) and _alternative_job__ (QUIC). (2) We remove the call to ClearInappropriateJobs() to prevent premature job cancellation. We set _main_job_is_blocked__ based on **activeProtocol**: true when HTTP/3 is preferred. We explicitly initialize _alternative_job__ with kProtoQUIC. This enables deterministic job creation driven by DASH’s protocol decision.
+
+### Step 5: Job Binding Semantics (BindJob)
+We extended BindJob(Job* job) to enforce protocol consistency. We discard jobs that do not match **activeProtocol** by resetting _bound\_job\__ and _job\_bound\__. We prevent fallback to unintended protocols, ensuring fidelity to DASH’s protocol choice.
+
+### Step 6: Fallback Handling  
+Our deterministic design preserves Chromium’s fallback mechanism: if QUIC fails (e.g., handshake timeout), the HTTP/2 job can still be used, ensuring robustness.
+
