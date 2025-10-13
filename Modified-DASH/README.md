@@ -1,1 +1,3 @@
-In this, we have added the modified dash.js files
+# DASH Original Media Request Workflow:
+
+![DASH Workflow](images/DASH_modified-workflow.png)
