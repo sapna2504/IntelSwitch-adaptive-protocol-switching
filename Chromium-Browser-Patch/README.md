@@ -1,1 +1,1 @@
-![Chromium Workflow](images/chromium_workflow.png)
+![Chromium Workflow](images/chromium_workflow.drawio.pdf)
