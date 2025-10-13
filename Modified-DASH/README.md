@@ -13,6 +13,9 @@ We divide the modifications into two blocks:
 1. **Protocol Propagation Block**: Protocol field is embedded as metadata at the point of request creation and propagated end-to-end across FragmentRequest.js, HTTPLoader.js, and XHRLoader.js. This ensures that each segment request carries explicit protocol information that Chromium can interpret deterministically.
 2. **Metrics Collection Block**: QoE metrics are collected from existing monitoring hooks in dash.js (e.g., buffer events, throughput estimators) with minimal new instrumentation. These are exported asynchronously to the decision engine, preventing reporting from blocking playback or interfering with ABR logic.
 
+
+![Modified DASH Workflow](images/DASH_modified-workflow.png)
+
 The modified workflow is as follows:
 ### Step 1: For making protocol-specific requests: 
 In FragmentRequest.js, we add a new field protocol to segment metadata (alongside existing fields such as media_type, quality, bandwidth, and URL). In HTTPLoader.js, which constructs HTTP requests, we incorporate the protocol field. If no protocol is set, HTTP/3 is used as the default. For audio, the protocol is always set as the alternate of the corresponding. 
