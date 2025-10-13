@@ -36,7 +36,5 @@ We modified the default job creation behavior to: (1) Always create both _main_j
 ### Step 5: Job Binding Semantics (BindJob)
 We extended BindJob(Job* job) to enforce protocol consistency. We discard jobs that do not match **activeProtocol** by resetting _bound\_job\__ and _job\_bound\__. We prevent fallback to unintended protocols, ensuring fidelity to DASH’s protocol choice.
 
-### Step 6: Fallback Handling  
-Our deterministic design preserves Chromium’s fallback mechanism: if QUIC fails (e.g., handshake timeout), the HTTP/2 job can still be used, ensuring robustness.
 
 
