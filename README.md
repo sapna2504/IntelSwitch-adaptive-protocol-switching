@@ -13,3 +13,7 @@
    (a) to send data to the RL model, and accordingly modified the DASH code such that we can send data.
    (b) to set the protocol field based on the RL-based protocol decision engine response.
 5. The detailed description can be found in **Modified-DASH** directory
+
+# Module 3: Protocol Decision Engine
+We design Protocol Decision Engine, a Deep Reinforcement Learning (DRL) based adaptive transport protocol selection mechanism.
+The neural network architecture of protocol decision engine was implemented in Python 3.10.12 with TensorFlow 1.15.0 and TFLearn 0.3.2, running on an NVIDIA L40S GPU with CUDA 12.2, cuDNN 8, and driver version 535.247.01
