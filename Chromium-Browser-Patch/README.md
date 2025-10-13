@@ -1,4 +1,4 @@
-# Chromium Media Request WorkFlow:
+# Chromium Media Request Workflow:
 
 ![Chromium Workflow](images/chromium_workflow.drawio.png)
 
@@ -9,3 +9,13 @@ When the player requests a video segment, it initiates the request through the b
 3. The request is then sent through the Chromium mojom system, Chromium’s interprocess communication (IPC) mechanism, which relays it from the renderer process to the browser process.
 4. The browser process then constructs the final network request and selects the appropriate transport protocol: HTTP/2 over TCP, or HTTP/3 over QUIC. The browser manages two types of jobs for this purpose: the main job, which uses TCP, and the alt job, which uses QUIC.
 5. The job binding is protocol-dependent: if the server supports QUIC or another alternate service, the browser binds the request to the alt job; otherwise, it falls back to the main job. The decision logic for this binding is handled by the http_stream_factory_job_controller.cc component in Chromium.
+
+# Modified Chromium Implementation details:
+![Chromium modifications](images/Modified-chromium.drawio.png)
+
+The above figure shows the modified pipeline. It operates as follows:  
+1. The DASH player annotates each request with a protocol hint,
+2. Blink transparently forwards this metadata,
+3. The Network Service Layer carries the hint into the net stack, and
+4. Finally, the Network and HTTP Layer (HttpStreamFactory) instantiates and binds jobs deterministically in accordance with the preference.
+5. In the end, the HTTP request with the selected transport protocol is sent to the server.
