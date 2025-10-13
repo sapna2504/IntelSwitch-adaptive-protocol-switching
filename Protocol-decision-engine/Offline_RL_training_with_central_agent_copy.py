@@ -21,7 +21,7 @@ import a3c_IntelDASH_copy
 
 # Global parameters
 
-S_INFO = 4  # bit_rate, bitrate_variation, rebuffering and networkthroughput
+S_INFO = 3  # bit_rate, bitrate_variation, rebuffering and networkthroughput
 S_LEN = 8  # take how many frames in the past
 A_DIM = 2
 ACTOR_LR_RATE = 0.0003
@@ -46,7 +46,7 @@ NN_MODEL = '/mnt/hdd/rl_results_inteldash/nn_model_ep_4000.ckpt'
 #PROTO = [0,1,2,2,2,2]
 PORT = [8666, 8333, 8777]
 NETWORK = ['4g', '5g', 'mmwave-mid-band-drive', 'wifi', 'ethernet', 'wifi-poor']
-COOKED_DATA_FOLDER = './hotnets_data_hd/'
+COOKED_DATA_FOLDER = './hotnets_data_new/'
 
 
 
