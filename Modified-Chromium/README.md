@@ -10,6 +10,13 @@ When the player requests a video segment, it initiates the request through the b
 4. The browser process then constructs the final network request and selects the appropriate transport protocol: HTTP/2 over TCP, or HTTP/3 over QUIC. The browser manages two types of jobs for this purpose: the main job, which uses TCP, and the alt job, which uses QUIC.
 5. The job binding is protocol-dependent: if the server supports QUIC or another alternate service, the browser binds the request to the alt job; otherwise, it falls back to the main job. The decision logic for this binding is handled by the http_stream_factory_job_controller.cc component in Chromium.
 
+# Key Challenges in Integrating Application-Driven Protocol Selection into Chromium Browser:
+1. **Per-request protocol signaling**: Chromium’s default design makes protocol choices at connection setup, using ALPN negotiation or cached Alternative Services. These mechanisms operate at the session level and not at the granularity of individual HTTP requests. Associating transport preferences with each DASH segment request, therefore, required introducing new request-level flags, while avoiding concurrency hazards if these flags were stored in global state.
+2. **Deep cross-layer propagation:** HTTP requests traverse multiple layers: Blink (renderer), the network service (broker), and the net stack (transport). Adding a new field (preferredProtocol) required modifications across these layers and propagation through IPC boundaries. Further, this needs to be done all while maintaining stability and backward compatibility with existing request flows.
+3. **Job orchestration complexity:** The HttpStreamFactory::JobController maintains multiple parallel jobs (main, alternate, DNS-based ALPN) and resolves them via speculative racing. The controller aggressively cancels jobs once one succeeds, which is efficient for static protocol choices but incompatible with explicit protocol directives. Preventing premature job cancellation while still leveraging Chromium’s fallback paths required restructuring the job orchestration logic
+
+
+
 # Modified Chromium Implementation details:
 ![Chromium modifications](images/Modified-chromium.drawio.png)
 
