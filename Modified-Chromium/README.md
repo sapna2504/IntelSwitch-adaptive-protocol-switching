@@ -16,6 +16,13 @@ When the player requests a video segment, it initiates the request through the b
 3. **Job orchestration complexity:** The HttpStreamFactory::JobController maintains multiple parallel jobs (main, alternate, DNS-based ALPN) and resolves them via speculative racing. The controller aggressively cancels jobs once one succeeds, which is efficient for static protocol choices but incompatible with explicit protocol directives. Preventing premature job cancellation while still leveraging Chromium’s fallback paths required restructuring the job orchestration logic.
 4. **Job binding consistency:** Chromium’s assumption of a single bound job per request meant that adding explicit preferences risked leaving jobs unbound or incorrectly reused. Without careful handling, this could create orphaned connections or state inconsistencies in the event-driven machinery of the net stack.
 
+# Solution Design
+To address the above challenges, the request pipeline is reconstructed, enabling explicit and reliable protocol selection as follows:
+1. **End-to-end visibility of protocol preference:** Each DASH segment request now carries an explicit protocol intent from its origin (the DASH player) through Blink, into the network service, and finally into the net stack. This ensures the choice of TCP vs. QUIC is treated as primary request metadata, not inferred indirectly through cached hints or ALPN negotiation.
+2. **Deterministic yet fallback-safe orchestration:** The DASH-provided protocol preference drives connection establishment, replacing speculative racing for the common case. However, Chromium’s robust fallback logic (e.g., retrying TCP if QUIC fails) remains intact to preserve reliability under network variability.
+3. **Minimal intrusion into abstractions:** To reduce regression risks, modifications were confined to interface boundaries between major subsystems (Blink → network service → net stack). This avoided invasive changes inside tightly coupled state machines and preserved Chromium’s maintainability across upstream updates.
+4. **Separation of concerns:** The DASH player provides policy by selecting the transport protocol via its decision engine. Chromium’s net stack implements a mechanism for executing this preference within its connection management mechanism. This clear separation prevents policy logic from leaking into low-level networking code, retaining modularity and clarity.
+
 
 # Modified Chromium Implementation details:
 ![Chromium modifications](images/Modified-chromium.drawio.png)
@@ -27,7 +34,8 @@ The above figure shows the modified pipeline. It operates as follows:
 4. Finally, the Network and HTTP Layer (HttpStreamFactory) instantiates and binds jobs deterministically in accordance with the preference.
 5. In the end, the HTTP request with the selected transport protocol is sent to the server.
 
-The detailed description of the above-mentioned modifications and as follows:
+## The detailed implementation description of the above-mentioned modifications and as follows:
+
 ### Step 1: DASH Player to Blink (Protocol Injection): 
 The DASH player issues segment requests via the standard XMLHttpRequest API. We extended the Blink layer (rendering engine of Chromium) by adding a new protocol attribute to xmlhttprequest.idl. We modified xmlhttprequest.h and xmlhttprequest.cc to read the protocol field associated with each request. We then use this protocol field to set the **protocolMode**. In mojom, **protocolMode** is defined as an enum in the network.mojom file. It represents a transport protocol preference for a network request and gets serialized across Mojo IPC between the renderer, -> browser, -> the network service.
 
