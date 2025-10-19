@@ -28,7 +28,8 @@ The above figure shows the workflow of modified DASH as follows:
 4. The preferred protocol is attached as metadata to the FragmentRequest.
 5. This metadata propagates through DASHHandler, HTTPLoader, and XHRLoader, ensuring Chromium receives the correct per-request preference. This architecture enables the DASH player to act as a protocol-aware application, coordinating bitrate adaptation, per-request transport control, and QoE feedback in a modular and non-intrusive manner.
 
-Detailed implementation description of modified workflow is as follows:
+**The Detailed implementation description of the modified workflow is as follows:**
+
 ### Step 1: For making protocol-specific requests: 
 In FragmentRequest.js, we add a new field protocol to segment metadata (alongside existing fields such as media_type, quality, bandwidth, and URL). In HTTPLoader.js, which constructs HTTP requests, we incorporate the protocol field. If no protocol is set, HTTP/3 is used as the default. For audio, the protocol is always set as the alternative of the corresponding. 
 
