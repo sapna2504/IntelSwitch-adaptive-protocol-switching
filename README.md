@@ -17,3 +17,6 @@
 # Module 3: Protocol Decision Engine
 We design Protocol Decision Engine, a Deep Reinforcement Learning (DRL) based adaptive transport protocol selection mechanism.
 The neural network architecture of protocol decision engine was implemented in Python 3.10.12 with TensorFlow 1.15.0 and TFLearn 0.3.2, running on an NVIDIA L40S GPU with CUDA 12.2, cuDNN 8, and driver version 535.247.01
+
+# WiseTrans-adaptive-protocol-switching
+We have used a similar supervised learning model used in [Wisetrans](https://github.com/joycezhangjia/WiseTrans) and trained with a video streaming dataset
